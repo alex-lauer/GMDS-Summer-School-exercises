@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Longitudinal Data Modeling – s2_inference_continuous</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Longitudinal Data Modeling</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html" rel="" target="">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./s1_visualization.html" rel="" target="">
+ <span class="menu-text">Visualization</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./s2_inference_continuous.html" rel="" target="" aria-current="page">
+ <span class="menu-text">Inference from Continuous Data</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./s3_missingness.html" rel="" target="">
+ <span class="menu-text">Missing Data Handling</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./s4_sensitivity_analyses.html" rel="" target="">
+ <span class="menu-text">Sensitivity Analyses</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./s5_inferences_binary.html" rel="" target="">
+ <span class="menu-text">Inference from Binary Data</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://alex-lauer.github.io/GMDS-Summer-School/" rel="" target="">
+ <span class="menu-text">Link to Solutions</span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools ms-auto">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        
+    <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="s2_inference_continuous.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+
+<section id="inference-from-longitudinal-data" class="level1">
+<h1>Inference from Longitudinal Data</h1>
+<p>This section will focus on the application of Mixed Model with Repeated Measures (MMRMs). Our main focus will be the modeling of the means of the data. MMRMs are generalizations of standard linear models in the way that data is allowed to be correlated between subsequent measurements from the same subject and exhibit non-constant variability. A nice summary can be found in the user manual for the MIXED Procedure <a href="https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#mixed_toc.htm">SAS</a>, or the <a href="https://openpharma.github.io/mmrm/latest-tag/articles/methodological_introduction.html">vignette</a> for the <code>mmrm</code> package <span class="citation" data-cites="mmrm">(<a href="#ref-mmrm" role="doc-biblioref">Sabanes Bove et al. 2024</a>)</span>.</p>
+<p>The primary assumptions for MMRMs are:</p>
+<ul>
+<li><p>The data are normally distributed</p></li>
+<li><p>The means (expected values) of the data are linear in terms of a certain set of parameters.</p></li>
+<li><p>The variances and covariances of the data are in terms of a different set of parameters, and they exhibit a structure matching one of those outlined in the former chapter.</p></li>
+</ul>
+<p>The mixed linear model can be described via the following formula</p>
+<p><span class="math display">\[
+y_i = X_i\beta\,+\,Z_i\gamma_i\,+\,\varepsilon_i\,,\, i = 1,\ldots,N
+\]</span></p>
+<p>where <span class="math inline">\(y\)</span> is the vector of responses (observed data, dependent variable), <span class="math inline">\(\beta\)</span> is an unknown vector of fixed effects with known design matrix <span class="math inline">\(X\)</span>, <span class="math inline">\(\gamma\)</span> is an unknown vector of random effects with known design matrix <span class="math inline">\(Z\)</span>, and <span class="math inline">\(\varepsilon\)</span> is an unknown random error vector. Furthermore <span class="math inline">\(N\)</span> denotes the total number of subjects in our analysis. For the sake of readability, we will omit the subject index and simplify the above formula to</p>
+<p><span class="math display">\[
+y = X\beta\,+\,Z\gamma\,+\,\varepsilon\,.
+\]</span></p>
+<p>We will further assume that <span class="math inline">\(\gamma\)</span> and <span class="math inline">\(\varepsilon\)</span> are uncorrelated Gaussian random variables with expectation <span class="math inline">\(0\)</span> and variances <span class="math inline">\(G\)</span> and <span class="math inline">\(R\)</span>, respectively. Then the variance-covariance matrix of <span class="math inline">\(y\)</span> is given by</p>
+<p><span class="math display">\[
+\text{Var}(y) := V = ZGZ' + R\,.
+\]</span> In this case <span class="math inline">\(ZGZ'\)</span> comprises the random effects component, and <span class="math inline">\(R\)</span> is the within-subject component.</p>
+<p>In this workshop we will focus on the case where only the within-subject component is accounted for, via modeling of the <span class="math inline">\(R\)</span> matrix. The random effects component <span class="math inline">\(Z\gamma\)</span> will be omitted. In this case we will have <span class="math inline">\(\text{Var}(y) = V = R\)</span>, resulting in a model given by</p>
+<p><span class="math display">\[
+y = X\beta\,+\,\varepsilon\,.
+\]</span></p>
+<section id="categorical-time" class="level2">
+<h2 class="anchored" data-anchor-id="categorical-time">Categorical Time</h2>
+<p>In the following sections we will use the package <code>mmrm</code> <span class="citation" data-cites="mmrm">(<a href="#ref-mmrm" role="doc-biblioref">Sabanes Bove et al. 2024</a>)</span>. You can start and familiarise yourself with the main function <code>mmrm()</code> using the command</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mmrm)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>?mmrm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Two inputs are strictly required to get <code>mmrm()</code> to work:</p>
+<ul>
+<li><p>A model formula</p></li>
+<li><p>The dataset, containing the response, as well as all fixed effects and variables in the covariance matrix.</p></li>
+</ul>
+<p><strong>Exercise</strong>: Fit a model <code>fit_cat_time</code> using the dataset <code>all2</code>, with change as dependent variable, baseline value, visit, baseline by visit interaction and treatment by visit interaction as fixed effects and an unstructured covariance matrix for visits within each subject.</p>
+<ul>
+<li><p>How do different choices for covariance matrices change the results? What is the difference on the estimation procedure?</p></li>
+<li><p>You can obtain a summary of the fit results via <code>summary(fit_cat_time)</code>. How do you interpret the fit summary?</p></li>
+<li><p>Look at the structure of the fit summary and try to extract the estimate of the <span class="math inline">\(R\)</span> matrix.</p></li>
+<li><p>How do other choices of covariance structures influence the estimation?</p></li>
+</ul>
+<p><strong>Solution</strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">### Work with code chunks to find the solution to the exercises</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="continuous-time" class="level2">
+<h2 class="anchored" data-anchor-id="continuous-time">Continuous Time</h2>
+<p>Time as continuous effect -&gt; single df for time and trt-by-time interaction</p>
+<p>Modeling: - Need avisit for structure of covariance matrix - Implicit assumption is for the covariance between values for two timepoints to be equal, regardless of the specific timing</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fit_cont_time <span class="ot">&lt;-</span> mmrm<span class="sc">::</span><span class="fu">mmrm</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> change <span class="sc">~</span> basval<span class="sc">*</span>week <span class="sc">+</span> trt<span class="sc">*</span>week <span class="sc">+</span> <span class="fu">us</span>(avisit <span class="sc">|</span> subject),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> all2<span class="sc">$</span>week,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> all2,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">mmrm_control</span>(<span class="at">method =</span> <span class="st">"Kenward-Roger"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span> (fit_cont_time)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mmrm fit
+
+Formula:     change ~ basval * week + trt * week + us(avisit | subject)
+Data:        all2 (used 150 observations from 50 subjects with maximum 3 
+timepoints)
+Weights:     all2$week
+Covariance:  unstructured (6 variance parameters)
+Method:      Kenward-Roger
+Vcov Method: Kenward-Roger
+Inference:   REML
+
+Model selection criteria:
+     AIC      BIC   logLik deviance 
+   838.0    849.5   -413.0    826.0 
+
+Coefficients: 
+            Estimate Std. Error       df t value Pr(&gt;|t|)   
+(Intercept)  6.83666    3.82960 47.00000   1.785  0.08068 . 
+basval      -0.47981    0.18600 47.00000  -2.580  0.01308 * 
+week        -1.94296    0.57420 47.00000  -3.384  0.00145 **
+trt2        -0.49024    1.48826 47.00000  -0.329  0.74331   
+basval:week  0.05275    0.02789 47.00000   1.892  0.06472 . 
+week:trt2   -0.36226    0.22315 47.00000  -1.623  0.11119   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Covariance estimate:
+        Week 2   Week 4   Week 8
+Week 2 41.3658  42.8600  49.0752
+Week 4 42.8600  86.6690 100.0141
+Week 8 49.0752 100.0141 220.9000</code></pre>
+</div>
+</div>
+<p>Can also apply non-linear transformations of time variable, in case the anticipated effect is not necessarily linear in time:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>all2<span class="sc">$</span>timesq <span class="ot">&lt;-</span> all2<span class="sc">$</span>week<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fit_cont_timesq <span class="ot">&lt;-</span> mmrm<span class="sc">::</span><span class="fu">mmrm</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> change <span class="sc">~</span> basval<span class="sc">*</span>timesq <span class="sc">+</span> trt<span class="sc">*</span>timesq <span class="sc">+</span> <span class="fu">us</span>(avisit <span class="sc">|</span> subject),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">weights =</span> all2<span class="sc">$</span>week,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> all2,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">mmrm_control</span>(<span class="at">method =</span> <span class="st">"Kenward-Roger"</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_cont_timesq)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mmrm fit
+
+Formula:     change ~ basval * timesq + trt * timesq + us(avisit | subject)
+Data:        all2 (used 150 observations from 50 subjects with maximum 3 
+timepoints)
+Weights:     all2$week
+Covariance:  unstructured (6 variance parameters)
+Method:      Kenward-Roger
+Vcov Method: Kenward-Roger
+Inference:   REML
+
+Model selection criteria:
+     AIC      BIC   logLik deviance 
+   861.8    873.3   -424.9    849.8 
+
+Coefficients: 
+               Estimate Std. Error        df t value Pr(&gt;|t|)    
+(Intercept)    3.298095   3.300323 47.000000   0.999  0.32275    
+basval        -0.396751   0.160290 47.000000  -2.475  0.01698 *  
+timesq        -0.191395   0.053074 47.000000  -3.606  0.00075 ***
+trt2          -1.224631   1.282574 47.000000  -0.955  0.34455    
+basval:timesq  0.005800   0.002578 47.000000   2.250  0.02916 *  
+timesq:trt2   -0.032220   0.020626 47.000000  -1.562  0.12497    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Covariance estimate:
+        Week 2   Week 4   Week 8
+Week 2 42.2220  41.1223  47.8394
+Week 4 41.1223  90.1270 102.6988
+Week 8 47.8394 102.6988 222.5403</code></pre>
+</div>
+</div>
+</section>
+<section id="adjusted-ls-means-from-mmrms" class="level2">
+<h2 class="anchored" data-anchor-id="adjusted-ls-means-from-mmrms">(Adjusted) LS Means from MMRMs</h2>
+<p>LS Means are means of the dependent variable adjusted for covariates in the statistical model. We can obtain LS Means estimates and contrasts allowing for a treatment comparison using the <code>emmeans</code> package.</p>
+<p><strong>Example</strong>: Calculate the observed (raw) means of changes along with number of patients by treatment group from the dataset <code>all2</code> overall and by visit. Then take the model <code>fit_cat_time</code> and derive the respective LS Means from the model. What do you observe?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Raw means</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>all2 <span class="sc">%&gt;%</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(group) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Mean =</span> <span class="fu">mean</span>(change),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 3
+  group     N  Mean
+  &lt;fct&gt; &lt;int&gt; &lt;dbl&gt;
+1 Arm 1    75 -6.96
+2 Arm 2    75 -9.03</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>all2 <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(group, avisit) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> dplyr<span class="sc">::</span><span class="fu">n</span>(),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Mean =</span> <span class="fu">mean</span>(change),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 4
+  group avisit     N   Mean
+  &lt;fct&gt; &lt;fct&gt;  &lt;int&gt;  &lt;dbl&gt;
+1 Arm 1 Week 2    25  -4.2 
+2 Arm 1 Week 4    25  -6.8 
+3 Arm 1 Week 8    25  -9.88
+4 Arm 2 Week 2    25  -5.24
+5 Arm 2 Week 4    25  -8.6 
+6 Arm 2 Week 8    25 -13.2 </code></pre>
+</div>
+</div>
+<p>The respective LS Means from the model with time as a fixed factor yields the following estimates:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(emmeans)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>emmeans<span class="sc">::</span><span class="fu">ref_grid</span>(fit_cat_time)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'emmGrid' object with variables:
+    basval = 19.56
+    avisit = Week 2, Week 4, Week 8
+    trt = 1, 2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_cat_time, <span class="sc">~</span>trt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: Results may be misleading due to involvement in interactions</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code> trt emmean    SE df lower.CL upper.CL
+ 1    -6.90 0.836 47    -8.58    -5.22
+ 2    -9.09 0.836 47   -10.77    -7.41
+
+Results are averaged over the levels of: avisit 
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_cat_time, <span class="sc">~</span>trt<span class="sc">*</span>avisit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> trt avisit emmean    SE df lower.CL upper.CL
+ 1   Week 2  -4.13 0.899 47    -5.93    -2.32
+ 2   Week 2  -5.31 0.899 47    -7.12    -3.51
+ 1   Week 4  -6.70 0.916 47    -8.55    -4.86
+ 2   Week 4  -8.70 0.916 47   -10.54    -6.85
+ 1   Week 8  -9.86 1.033 47   -11.94    -7.79
+ 2   Week 8 -13.26 1.033 47   -15.33   -11.18
+
+Confidence level used: 0.95 </code></pre>
+</div>
+</div>
+<section id="observed-vs.-balanced-margins" class="level3">
+<h3 class="anchored" data-anchor-id="observed-vs.-balanced-margins">Observed vs.&nbsp;balanced margins</h3>
+<p>In the example above we have used the standard option for the weights in the calculation of LS Means. We will delve deeper into the following two options and will try to understand the difference:</p>
+<ul>
+<li><p><code>weights = "equal"</code>: Each stratum induced by covariate levels is assigned the same weight in the calculation of the LS Means. This is the default option.</p></li>
+<li><p><code>weights = "proportional"</code>: Each stratum induced by covariate levels is assigned a weight according to their observed proportion in the calculation of the LS Mean. This option gives each stratum a weight corresponding to its size. Estimates using this option are reflective of the balance of covariates in the data.</p></li>
+</ul>
+<p><strong>Exercise:</strong> Based on the <code>fit_cat_time</code> model, compare the LS Means for the change in the response variable by treatment overall and treatment by visit interaction using the different options for <code>weight</code>. Compare the results for the two LS Means options to the observed means and to one another.</p>
+<p>Discuss the following points:</p>
+<ul>
+<li>Why is there no difference between LS Means estimates for the overall treatment effect and the treatment by visit interaction? (Hint: Create a frequency table)</li>
+</ul>
+<p>Now update the <code>fit_cat_time</code> model to <code>fit_cat_time2</code>, and include the covariate <code>gender</code>. Estimate the same LS Means for the change in the response variable by treatment (overall) and treatment by visit interaction.</p>
+<ul>
+<li><p>Why is there a difference now between results from the different LS Means options? (Hint: another frequency table can help)</p></li>
+<li><p>What effect could missing data have on the estimation, even in the case of <code>fit_cat_time</code>? I.e. what would happen if this data was not complete but subject to missingness, with the degree of missing data increasing over time and being disproportionate between treatment arms?</p></li>
+</ul>
+<p><strong>Solution</strong>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="do">### Work with code chunks to find the solution to the exercises</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="contrasts" class="level3">
+<h3 class="anchored" data-anchor-id="contrasts">Contrasts</h3>
+<p>Most of the times, the quantity we are truly interested in when reading out a study, is the contrast between treatment arms. This contrast can be built either based on LS Means at some landmark time point, or as a longitudinal (linear) combination of LS Means from multiple time points.</p>
+<p>We can use the <code>pairs()</code> or the <code>contrast()</code> functions, where the latter provides more flexibility for the calculation of linear combinations from multiple timepoints.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>lsmns <span class="ot">&lt;-</span> emmeans<span class="sc">::</span><span class="fu">emmeans</span>(fit_cat_time, <span class="sc">~</span>trt<span class="sc">*</span>avisit, <span class="at">weights =</span> <span class="st">"proportional"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs</span>(lsmns, <span class="at">reverse =</span> <span class="cn">TRUE</span>, <span class="at">adjust =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> contrast                  estimate    SE   df t.ratio p.value
+ trt2 Week 2 - trt1 Week 2    -1.19 1.273 47.0  -0.935  0.3546
+ trt1 Week 4 - trt1 Week 2    -2.58 0.659 47.0  -3.917  0.0003
+ trt1 Week 4 - trt2 Week 2    -1.39 1.284 61.3  -1.082  0.2835
+ trt2 Week 4 - trt1 Week 2    -4.57 1.284 61.3  -3.559  0.0007
+ trt2 Week 4 - trt2 Week 2    -3.38 0.659 47.0  -5.133  &lt;.0001
+ trt2 Week 4 - trt1 Week 4    -1.99 1.296 47.0  -1.536  0.1313
+ trt1 Week 8 - trt1 Week 2    -5.74 0.950 47.0  -6.043  &lt;.0001
+ trt1 Week 8 - trt2 Week 2    -4.55 1.370 73.3  -3.321  0.0014
+ trt1 Week 8 - trt1 Week 4    -3.16 0.716 47.0  -4.416  0.0001
+ trt1 Week 8 - trt2 Week 4    -1.17 1.381 61.1  -0.846  0.4007
+ trt2 Week 8 - trt1 Week 2    -9.13 1.370 73.3  -6.664  &lt;.0001
+ trt2 Week 8 - trt2 Week 2    -7.94 0.950 47.0  -8.361  &lt;.0001
+ trt2 Week 8 - trt1 Week 4    -6.55 1.381 61.1  -4.742  &lt;.0001
+ trt2 Week 8 - trt2 Week 4    -4.56 0.716 47.0  -6.373  &lt;.0001
+ trt2 Week 8 - trt1 Week 8    -3.39 1.462 47.0  -2.319  0.0248</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="do">### This is the same as the following</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>prs <span class="ot">&lt;-</span> <span class="fu">contrast</span>(lsmns, <span class="at">method =</span> <span class="st">"revpairwise"</span>, <span class="at">adjust =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Note that both <code>pairs()</code> and <code>contrast()</code> provide multiple options for fine-tuning. We chose <code>adjust = NULL</code> in order to not perform any multiplicity adjustment (default method would have been the Tukey method). We also chose <code>reverse = TRUE</code> to reverse the order of comparisons performed by <code>pairs()</code>, as the default would have given us the contrast for Treatment 1 - Treatment 2. Consequently, we applied <code>method = "revpairwise"</code> in the <code>contrast()</code> function.</p>
+<p>We can obtain the coefficients in the calculation of the contrasts via <code>coef()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(prs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            trt avisit c.1 c.2 c.3 c.4 c.5 c.6 c.7 c.8 c.9 c.10 c.11 c.12 c.13
+trt1 Week 2   1 Week 2  -1  -1   0  -1   0   0  -1   0   0    0   -1    0    0
+trt2 Week 2   2 Week 2   1   0  -1   0  -1   0   0  -1   0    0    0   -1    0
+trt1 Week 4   1 Week 4   0   1   1   0   0  -1   0   0  -1    0    0    0   -1
+trt2 Week 4   2 Week 4   0   0   0   1   1   1   0   0   0   -1    0    0    0
+trt1 Week 8   1 Week 8   0   0   0   0   0   0   1   1   1    1    0    0    0
+trt2 Week 8   2 Week 8   0   0   0   0   0   0   0   0   0    0    1    1    1
+            c.14 c.15
+trt1 Week 2    0    0
+trt2 Week 2    0    0
+trt1 Week 4    0    0
+trt2 Week 4   -1    0
+trt1 Week 8    0   -1
+trt2 Week 8    1    1</code></pre>
+</div>
+</div>
+<p>The output above is probably more than we wanted. We are only interested in contrasts between Treatments 1 and 2 at the same time points. Here <code>contrast()</code> provides more flexibility. Instead of parsing a string with the name of a method to the <code>method</code> argument, we provide a named list of coefficients. These coefficients are identical with the onces we can see in the coefficient matrix above. We can use it as a guide.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  lsmns, </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">list</span>(</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Difference Trt 2 - Trt 1 at Week 4"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Difference Trt 2 - Trt 1 at Week 8"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  ), </span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">adjust =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> contrast                           estimate   SE df t.ratio p.value
+ Difference Trt 2 - Trt 1 at Week 4    -1.99 1.30 47  -1.536  0.1313
+ Difference Trt 2 - Trt 1 at Week 8    -3.39 1.46 47  -2.319  0.0248</code></pre>
+</div>
+</div>
+<p>This way of computing LS Means from our MMRM allows us to calculate all kinds of linear combinations of LS Means. Assume we were interested in the <strong>longitudinal</strong> mean of changes from baseline averaged over Weeks 2, 4 and 8. This would look like this:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  lsmns, </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">list</span>(</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Difference Trt 2 - Trt 1 Averaged over Weeks 2, 4 and 8"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)<span class="sc">/</span><span class="dv">3</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  ), </span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">adjust =</span> <span class="cn">NULL</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> contrast                                                estimate   SE df
+ Difference Trt 2 - Trt 1 Averaged over Weeks 2, 4 and 8    -2.19 1.18 47
+ t.ratio p.value
+  -1.850  0.0705</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="fit-diagnostics" class="level2">
+<h2 class="anchored" data-anchor-id="fit-diagnostics">Fit diagnostics</h2>
+<p>The following section closely follows the content in Chapter 10 in <span class="citation" data-cites="fitzmaurice2011">(<a href="#ref-fitzmaurice2011" role="doc-biblioref">Fitzmaurice 2011</a>)</span>.</p>
+<p>Our analysis should be concluded with a look into the fit diagnostics, more specifically, the residuals. Residuals are defined by the difference between the true responses and the fitted values from the model:</p>
+<p><span class="math display">\[
+r := y - X\hat\beta\,,
+\]</span> where <span class="math inline">\(\hat\beta\)</span> are the estimated coefficients from our model. Residuals provide an estimate of the true vector of random errors</p>
+<p><span class="math display">\[
+\varepsilon = y - X\beta\,.
+\]</span></p>
+<p>As per our modeling assumptions, <span class="math inline">\(\varepsilon\)</span> should follow a normal distribution with mean zero. The mean of the residuals is zero and therefore identical with the mean of the error term. For the covariance of the residuals however, the variance-covariance matrix of <span class="math inline">\(\varepsilon\)</span> only serves us as an approximation (as suggested by <span class="citation" data-cites="fitzmaurice2011">(<a href="#ref-fitzmaurice2011" role="doc-biblioref">Fitzmaurice 2011</a>)</span> for all ‘practical applications’):</p>
+<p><span class="math display">\[
+Cov(r) \approx Cov(\varepsilon) = R\,.
+\]</span> This assumption has several implications on the residual diagnostics:</p>
+<ul>
+<li><p>The variance is not necessarily constant. Plotting the fitted values versus the residuals might therefore lead to a non-constant range. An examination of the residual variance or autocorrelation among residuals is therefore not very meaningful.</p></li>
+<li><p>Residuals from analyses of longitudinal data can exhibit correlation with the covariates. Scatterplots of residuals versus selected covariates can therefore reveal systematic trends (which normally should not be the case).</p></li>
+</ul>
+<p>A transformation of residuals to achieve constant variance and zero correlation is therefore often useful. This transformation uses the so-called <em>Cholesky decomposition</em> of the variance-covariance matrix <span class="math inline">\(R\)</span>. Let <span class="math inline">\(L\)</span> be a lower triangular matrix, such that</p>
+<p><span class="math display">\[
+R = L\,L'\,,
+\]</span> then the transformed residuals are given by <span class="math display">\[
+r^* =  L^{-1}(y - X\beta)\,.
+\]</span> In the <code>mmrm</code> package, transformed residuals can be derived using the <code>type = "normalized"</code> option.</p>
+<p><strong>Exercise</strong>: Which visualisations can you think of that make sense to assess the goodness of fit here? Create a new <code>tibble</code> (or <code>data.frame</code>) containing the variables of importance and try plotting them in a meaningful way. Discuss the results within your group.</p>
+<p><strong>Solution</strong>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="do">### Work with code chunks to find the solution to the exercises</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="baseline-as-a-response-clda-lda" class="level2">
+<h2 class="anchored" data-anchor-id="baseline-as-a-response-clda-lda">Baseline as a Response (cLDA + LDA)</h2>
+<p>In the former examples we used baseline severity as a continuous covariate, which is the most common approach. In this case we treat <code>baseval</code> as a <em>fixed effect</em> and used changes from baseline as response variable in our model formula. This approach comes with a couple of caveats:</p>
+<ul>
+<li><p>Only subjects with a non-missing baseline and at least one non-missing follow-up response contribute to the analysis (i.e.&nbsp;at least one non-missing change from baseline value).</p></li>
+<li><p>Only subjects with complete covariate data contribute to the analysis.</p></li>
+</ul>
+<p>Hence, if <code>baseval</code> is missing for a subject, this subject will not be included in our model. <span class="citation" data-cites="liang_zeger">(<a href="#ref-liang_zeger" role="doc-biblioref">Liang and Zeger 2000</a>)</span> introduced the so-called LDA (longitudinal data analysis) and cLDA (constrained longitudinal data analysis) models. The basic idea behind these models is that baseline can be regarded as a response at Time 0, and can therefore be included in the vector of responses.</p>
+<p>In order to fit the model, we need to apply some data wrangling upfront and add baseline to the response column (<code>aval</code>). Note that this step is usually not required when dealing with CDISC compliant datasets, such as ADaM or SDTM.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>base <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">distinct</span>(all2, subject, trt, basval, group, gender) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">time =</span> <span class="dv">0</span>,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">aval =</span> basval,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">avisit =</span> <span class="st">"Baseline"</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>all2_lda <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">bind_rows</span>(all2, base) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">avisit =</span> forcats<span class="sc">::</span><span class="fu">fct_reorder</span>(avisit, time)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="do">### Check Order of avisit levels:</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(all2_lda<span class="sc">$</span>avisit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Baseline" "Week 2"   "Week 4"   "Week 8"  </code></pre>
+</div>
+</div>
+<p>We can now fit a model, including <code>aval</code> as a response variable, treatment (<code>group</code>), visit (<code>avisit</code>) and a treatment-by-time interaction term:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>lda <span class="ot">&lt;-</span> <span class="fu">mmrm</span>(</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> aval <span class="sc">~</span> group<span class="sc">*</span>avisit <span class="sc">+</span> <span class="fu">us</span>(avisit <span class="sc">|</span> subject),</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> all2_lda,</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">mmrm_control</span>(<span class="at">method =</span> <span class="st">"Kenward-Roger"</span>)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The LS Mean estimates per treatment arm for mean changes to Week 8 (Time 3) are now obtained via contrasts between Week 3 and Baseline:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>lsmns <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(lda, <span class="sc">~</span>group<span class="sc">*</span>avisit, <span class="at">weights =</span> <span class="st">"proportional"</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">contrast</span>(</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  lsmns,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">list</span>(</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"LS Means for Change from Baseline to Week 8 Treatment 1"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"LS Means for Change from Baseline to Week 8 Treatment 2"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"LS Means for Difference in Changes to Week 8 btw. Treatment 2 and Treatment 1"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  ), </span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">adjust =</span> <span class="cn">NULL</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> contrast                                                                     
+ LS Means for Change from Baseline to Week 8 Treatment 1                      
+ LS Means for Change from Baseline to Week 8 Treatment 2                      
+ LS Means for Difference in Changes to Week 8 btw. Treatment 2 and Treatment 1
+ estimate   SE df t.ratio p.value
+    -9.88 1.01 48  -9.768  &lt;.0001
+   -13.24 1.01 48 -13.089  &lt;.0001
+    -3.36 1.43 48  -2.349  0.0230</code></pre>
+</div>
+</div>
+<p>A note on caveats associated with LDA models:</p>
+<ul>
+<li><p>In cases where the treatment effect has a rapid onset, the linearity assumption underlying the model is violated.</p></li>
+<li><p>Use of baseline as a response, as opposed to a covariate, ignores the predictive nature of baseline severity as an explanatory factor in the residual error.</p></li>
+</ul>
+<p>Generally, LDA models can be very useful in trials with only very few visits per patient due to the additional response value being included. In longer trials however, it is recommended to refrain from their use for the disadvantages stated above. In this case, a decent data quality is key to avoid missing baseline data (if possible completely) and reduce the degree of missingness with regards to follow-up data as much as possible.</p>
+</section>
+<section id="addendum-on-linear-mixed-effect-models" class="level2">
+<h2 class="anchored" data-anchor-id="addendum-on-linear-mixed-effect-models">Addendum on Linear Mixed Effect Models</h2>
+<p>In this chapter we have dealt with models where the response is modeled as a linear combination of <em>fixed effect</em> parameters <span class="math inline">\(\beta\)</span> and a random error <span class="math inline">\(\varepsilon\)</span></p>
+<p><span class="math display">\[
+y = X\beta\,+\,\varepsilon\,.
+\]</span></p>
+<p>The fixed effects in this model represent the population effects and we used the random error to model the subject-specific influences. Although we used the term mixed model for repeated measures (MMRM), this nomenclature is misleading in the way that our model does not truly deserve the term <em>mixed</em>. A true mixed model would require the involvement of <em>fixed</em> and <em>random</em> effects. The latter have previously been omitted.</p>
+<p>While we will not cover random coefficient models (also known as random slope and intercept models or RS&amp;I models) in depth in this class, we would like to point to couple of useful features. For further reading, one can refer to Chapter 8 in <span class="citation" data-cites="fitzmaurice2011">(<a href="#ref-fitzmaurice2011" role="doc-biblioref">Fitzmaurice 2011</a>)</span>.</p>
+<p>The distinction between <em>fixed</em> and <em>random</em> effects in linear mixed effect models allows for modeling of both between-subject and within-subject variations. In random coefficient models (i.e.&nbsp;MMRMs with a non-trivial random effect) each subject is assumed to have their own (linear) rate of response over time, expressed as random slopes and intercepts.</p>
+<p>“<em>In addition it is not only possible to estimate parameters that describe how the mean response changes in the population of interest, it is also possible to predict how individual response trajectories change over time. For example, linear mixed effects models can be used to obtain predictions of individual growth trajectories over time.</em>” <span class="citation" data-cites="fitzmaurice2011">(<a href="#ref-fitzmaurice2011" role="doc-biblioref">Fitzmaurice 2011</a>)</span></p>
+<p>Linear mixed effects models therefore allow for inferences on the individual (subject) basis rather than the entirety of individuals (population).</p>
+<p>Another advantage of linear mixed models is their flexibility with respect to imbalances in longitudinal data. We are no longer bound by the restriction to have (approximately) the same number of observations per subject, i.e.&nbsp;the approximately the same length of follow-up, or even for the visits to be taken at the same times. This feature is especially useful whenever we are dealing with parallel design studies, involving the comparison of interventions with different dosing/ assessment frequencies.</p>
+<p>Note that the <code>mmrm</code> package so far does not allow for fitting of linear mixed effect models, in the sense that an actual <em>random effects</em> term is included in the model formula. For these kind of models, we point to the package <code>lme4</code> <span class="citation" data-cites="lme4">(<a href="#ref-lme4" role="doc-biblioref">Bates et al. 2015</a>)</span>.</p>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-lme4" class="csl-entry" role="listitem">
+Bates, Douglas, Martin Mächler, Ben Bolker, and Steve Walker. 2015. <span>“Fitting Linear Mixed-Effects Models Using <span class="nocase">lme4</span>.”</span> <em>Journal of Statistical Software</em> 67 (1): 1–48. <a href="https://doi.org/10.18637/jss.v067.i01">https://doi.org/10.18637/jss.v067.i01</a>.
+</div>
+<div id="ref-fitzmaurice2011" class="csl-entry" role="listitem">
+Fitzmaurice, Laird, G. M. 2011. <em>Applied Longitudinal Analysis</em>. Vol. 2. USA: New York, Wiley. <a href="https://doi.org/10.1002/9781119513469">https://doi.org/10.1002/9781119513469</a>.
+</div>
+<div id="ref-liang_zeger" class="csl-entry" role="listitem">
+Liang, Kung-Yee, and Scott L. Zeger. 2000. <span>“Longitudinal Data Analysis of Continuous and Discrete Responses for Pre-Post Designs.”</span> <em>Sankhyā: The Indian Journal of Statistics, Series B (1960-2002)</em> 62 (1): 134–48. <a href="http://www.jstor.org/stable/25053123">http://www.jstor.org/stable/25053123</a>.
+</div>
+<div id="ref-mmrm" class="csl-entry" role="listitem">
+Sabanes Bove, Daniel, Liming Li, Julia Dedic, Doug Kelkhoff, Kevin Kunzmann, Brian Matthew Lang, Christian Stock, et al. 2024. <em>Mmrm: Mixed Models for Repeated Measures</em>. <a href="https://openpharma.github.io/mmrm/">https://openpharma.github.io/mmrm/</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
